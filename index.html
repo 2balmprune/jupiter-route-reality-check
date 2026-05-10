@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Jupiter Route Reality Check</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: #090b10;
+        color: #f4f7fb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 20% 0%, rgba(0, 173, 181, 0.2), transparent 28rem),
+          radial-gradient(circle at 100% 15%, rgba(248, 196, 113, 0.14), transparent 24rem),
+          #090b10;
+      }
+
+      main {
+        margin: 0 auto;
+        max-width: 1120px;
+        padding: 32px 20px 44px;
+      }
+
+      header {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 24px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(32px, 5vw, 56px);
+        line-height: 1;
+      }
+
+      .subhead {
+        max-width: 780px;
+        color: #b7c2d0;
+        font-size: 17px;
+        line-height: 1.55;
+      }
+
+      .controls,
+      .result-grid,
+      .panel {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(14, 18, 27, 0.82);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 170px 170px;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: #9aa8ba;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      input,
+      button {
+        min-height: 44px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        font: inherit;
+      }
+
+      input {
+        width: 100%;
+        background: #0f1420;
+        color: #f4f7fb;
+        padding: 0 12px;
+      }
+
+      button {
+        align-self: end;
+        cursor: pointer;
+        background: #00adb5;
+        color: #061014;
+        font-weight: 800;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.62;
+      }
+
+      .result-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 1px;
+        overflow: hidden;
+        border-radius: 8px;
+      }
+
+      .panel {
+        border: 0;
+        border-radius: 0;
+        padding: 18px;
+        background: rgba(14, 18, 27, 0.9);
+      }
+
+      .stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .metric-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .metric {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 12px;
+        background: #0b1019;
+      }
+
+      .metric span,
+      .token-row span,
+      .route-row span {
+        display: block;
+        color: #8b9bb0;
+        font-size: 12px;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 5px;
+        font-size: 18px;
+      }
+
+      .token-row,
+      .route-row {
+        display: grid;
+        grid-template-columns: 48px 1fr auto;
+        gap: 10px;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 10px;
+        background: #0b1019;
+      }
+
+      .token-row img {
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+      }
+
+      .pill {
+        border-radius: 999px;
+        padding: 5px 9px;
+        background: rgba(0, 173, 181, 0.14);
+        color: #65edf2;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .warning {
+        background: rgba(248, 196, 113, 0.14);
+        color: #ffd88c;
+      }
+
+      pre {
+        overflow: auto;
+        max-height: 420px;
+        margin: 0;
+        padding: 12px;
+        border-radius: 8px;
+        background: #05070b;
+        color: #c6d4e5;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 820px) {
+        .controls,
+        .result-grid,
+        .metric-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Jupiter Route Reality Check</h1>
+        <p class="subhead">
+          A pre-trade cockpit for checking whether a Solana token has useful
+          Jupiter metadata, liquidity, price coverage, and an executable route
+          before a wallet signs anything.
+        </p>
+      </header>
+
+      <section class="controls" aria-label="Route controls">
+        <label>
+          Search token
+          <input id="query" value="SOL" autocomplete="off" />
+        </label>
+        <label>
+          Amount in token units
+          <input id="amount" value="0.1" inputmode="decimal" />
+        </label>
+        <button id="run">Check Route</button>
+      </section>
+
+      <section class="result-grid">
+        <div class="panel stack">
+          <h2>Readiness</h2>
+          <div class="metric-row">
+            <div class="metric"><span>Token</span><strong id="token">-</strong></div>
+            <div class="metric"><span>USD price</span><strong id="price">-</strong></div>
+            <div class="metric"><span>Liquidity</span><strong id="liquidity">-</strong></div>
+            <div class="metric"><span>Route</span><strong id="route">-</strong></div>
+          </div>
+          <div id="tokens" class="stack"></div>
+          <div id="routeRows" class="stack"></div>
+        </div>
+
+        <div class="panel stack">
+          <h2>Raw Response</h2>
+          <pre id="raw">Press Check Route to call Jupiter APIs.</pre>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+      const DUMMY_TAKER = "11111111111111111111111111111111";
+
+      const $ = (id) => document.getElementById(id);
+
+      function formatUsd(value) {
+        if (value === undefined || value === null || Number.isNaN(Number(value))) {
+          return "-";
+        }
+        return Number(value).toLocaleString(undefined, {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: Number(value) >= 10 ? 2 : 6,
+        });
+      }
+
+      async function getJson(url) {
+        const response = await fetch(url);
+        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}: ${text}`);
+        }
+        return JSON.parse(text);
+      }
+
+      async function runCheck() {
+        $("run").disabled = true;
+        $("run").textContent = "Checking";
+        $("raw").textContent = "Calling Jupiter...";
+
+        try {
+          const query = $("query").value.trim() || "SOL";
+          const tokenResults = await getJson(
+            `https://api.jup.ag/tokens/v2/search?query=${encodeURIComponent(query)}`,
+          );
+          const token = tokenResults.find((item) => item.isVerified) ?? tokenResults[0];
+          if (!token) {
+            throw new Error(`No token result for "${query}"`);
+          }
+
+          const amount = Number($("amount").value || 0);
+          const rawAmount = Math.max(1, Math.round(amount * 10 ** token.decimals));
+
+          const [priceData, order] = await Promise.all([
+            getJson(`https://api.jup.ag/price/v3?ids=${token.id},${USDC}`),
+            getJson(
+              `https://api.jup.ag/swap/v2/order?inputMint=${token.id}&outputMint=${USDC}&amount=${rawAmount}&taker=${DUMMY_TAKER}`,
+            ),
+          ]);
+
+          const price = priceData[token.id];
+          $("token").textContent = `${token.symbol}`;
+          $("price").textContent = formatUsd(price?.usdPrice ?? token.usdPrice);
+          $("liquidity").textContent = formatUsd(price?.liquidity ?? token.liquidity);
+          $("route").textContent = order.routePlan?.length ? "Quoted" : "No route";
+
+          $("tokens").innerHTML = tokenResults.slice(0, 4).map((item) => `
+            <div class="token-row">
+              <img src="${item.icon || ""}" alt="" onerror="this.style.visibility='hidden'" />
+              <div>
+                <strong>${item.name} (${item.symbol})</strong>
+                <span>${item.id}</span>
+              </div>
+              <div class="pill ${item.isVerified ? "" : "warning"}">
+                ${item.isVerified ? "verified" : "unverified"}
+              </div>
+            </div>
+          `).join("");
+
+          $("routeRows").innerHTML = (order.routePlan ?? []).map((route) => `
+            <div class="route-row">
+              <div class="pill">${route.percent}%</div>
+              <div>
+                <strong>${route.swapInfo?.label ?? "Route"}</strong>
+                <span>${route.swapInfo?.inputMint} -> ${route.swapInfo?.outputMint}</span>
+              </div>
+              <strong>${formatUsd(route.usdValue)}</strong>
+            </div>
+          `).join("");
+
+          $("raw").textContent = JSON.stringify(
+            {
+              selectedToken: token,
+              price,
+              orderSummary: {
+                requestId: order.requestId,
+                mode: order.mode,
+                error: order.error ?? null,
+                errorMessage: order.errorMessage ?? null,
+                priceImpact: order.priceImpact,
+                inUsdValue: order.inUsdValue,
+                outUsdValue: order.outUsdValue,
+                routePlan: order.routePlan,
+              },
+            },
+            null,
+            2,
+          );
+        } catch (error) {
+          $("raw").textContent = error.stack || String(error);
+        } finally {
+          $("run").disabled = false;
+          $("run").textContent = "Check Route";
+        }
+      }
+
+      $("run").addEventListener("click", runCheck);
+      runCheck();
+    </script>
+  </body>
+</html>
